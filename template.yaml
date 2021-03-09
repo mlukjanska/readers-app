@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  readers-app
+
+  SAM Template for readers-app
+  
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+      Variables:
+        BOOKS_DDB_TABLE: !Ref BooksDdbTable
+        ENDPOINT_OVERRIDE: ""
+
+Resources:
+  BooksDdbTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: books_table
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+  BooksFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: ./src
+      Handler: app.lambdaHandler
+      Runtime: nodejs12.x
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref BooksDdbTable
+      Events:
+        GetBook:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /books/{id}
+            Method: get
+        CreateBook:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /books
+            Method: post
+        DeleteBook:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /books
+            Method: delete
+
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  BooksApi:
+    Description: "API Gateway endpoint URL for Prod stage for Books function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/books/"
+  BooksFunction:
+    Description: "Books Lambda Function ARN"
+    Value: !GetAtt BooksFunction.Arn
+  BooksFunctionIamRole:
+    Description: "Implicit IAM Role created for Books function"
+    Value: !GetAtt BooksFunctionRole.Arn
+  BooksDdbTable:
+      Description: "Books DynamoDB ARN"
+      Value: !GetAtt BooksDdbTable.Arn

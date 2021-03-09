@@ -1,0 +1,6 @@
+{
+    "BooksFunction": {
+        "ENDPOINT_OVERRIDE": "http://127.0.0.1:8000",
+        "BOOKS_DDB_TABLE": "books_table"
+    }
+}

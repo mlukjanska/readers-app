@@ -1,0 +1,6 @@
+{
+    "BooksFunction": {
+        "ENDPOINT_OVERRIDE": "http://docker.for.windows.localhost:8000",
+        "BOOKS_DDB_TABLE": "books_table"
+    }
+}
